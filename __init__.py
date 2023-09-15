@@ -114,6 +114,11 @@ class VIEW3D_PT_low_poly_tree(Panel):
         row.column().label(text="Leaf geometry")
         row.column().prop(context.scene, "lptg_leaf_geometry")
 
+        if context.scene.lptg_leaf_geometry == "mesh.custom":
+            row = layout.row()
+            row.column().label(text="Leaf Object")
+            row.column().prop(context.scene, "lptg_leaf_mesh")
+
         layout.row().prop(context.scene, "lptg_leaf_size")
         layout.row().prop(context.scene, "lptg_leaf_size_deviation")
 
@@ -135,6 +140,11 @@ def register():
     bpy.types.Scene.lptg_stem_material = PointerProperty(
         type=bpy.types.Material,
         name="", description="Stem Material")
+    bpy.types.Scene.lptg_leaf_mesh = PointerProperty(
+        type=bpy.types.Object,
+        name="",
+        description="Object to use for leaves"
+    )
     bpy.types.Scene.lptg_leaf_material = StringProperty(
         default="leaf_",
         name="", description="Every material which begins with this prefix will be "
@@ -158,7 +168,8 @@ def register():
         description="Factor by which the stem length gets smaller after each section")
     bpy.types.Scene.lptg_leaf_geometry = EnumProperty(
         items=[('mesh.primitive_cube_add', "Cube", "Cube mesh", 'CUBE', 0),
-               ('mesh.primitive_ico_sphere_add', "Sphere", "Sphere mesh", 'MESH_ICOSPHERE', 1)],
+               ('mesh.primitive_ico_sphere_add', "Sphere", "Sphere mesh", 'MESH_ICOSPHERE', 1),
+               ('mesh.custom', "Custom Object", "Select a custom object in the Leaf Object field", 'USER_MESH', 2)],
         default='mesh.primitive_ico_sphere_add',
         name="",
         description="The geometry mesh from which the leaves are created",)

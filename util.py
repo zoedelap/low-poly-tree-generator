@@ -78,7 +78,8 @@ def generate_tree(context, stem_mat=None, leaf_mat_prefix=None,
     leaves = add_leaves(outer_coordinates, stem_obj.matrix_world,
                         leaf_mats=leaf_mats, leaf_size=leaf_size,
                         leaf_size_deviation=leaf_size_deviation,
-                        leaf_geometry=context.scene.lptg_leaf_geometry)
+                        leaf_geometry=context.scene.lptg_leaf_geometry,
+                        leaf_mesh=context.scene.lptg_leaf_mesh)
 
     stem_obj.data.materials.append(stem_mat)
 
@@ -218,29 +219,35 @@ def add_leaves2(index_coordinates_map, matrix, leaf_mat, stem_obj):
 
 def add_leaves(outer_coordinates, matrix, leaf_mats=[], leaf_size=0.5,
                leaf_size_deviation=20.0,
-               leaf_geometry='mesh.primitive_ico_sphere_add'):
+               leaf_geometry='mesh.primitive_ico_sphere_add',
+               leaf_mesh=None):
     leaf_objects = []
     for v in outer_coordinates:
         my_co = matrix @ v
-        if leaf_geometry == 'mesh.primitive_ico_sphere_add':
+        if leaf_geometry == 'mesh.custom' and leaf_mesh is not None:
+            leaf_obj = leaf_mesh.copy()
+            leaf_obj.data = leaf_mesh.data.copy()
+            leaf_obj.animation_data_clear()
+            leaf_obj.location = my_co
+        elif leaf_geometry == 'mesh.primitive_ico_sphere_add':
             bpy.ops.mesh.primitive_ico_sphere_add(
                 radius=1, enter_editmode=False,
                 location=my_co
             )
+            leaf_obj = bpy.context.active_object
         elif leaf_geometry == 'mesh.primitive_cube_add':
             bpy.ops.mesh.primitive_cube_add(
                 size=1, enter_editmode=False,
                 location=my_co
             )
+            leaf_obj = bpy.context.active_object
         deviation = leaf_size * (leaf_size_deviation / 100.0)
         size = random.uniform(leaf_size - deviation, leaf_size + deviation)
-        bpy.ops.transform.resize(
-            value=(size, size, size))
-        leaf_obj = bpy.context.active_object
+        leaf_obj.scale = (size, size, size)
         if leaf_mats:
             leaf_obj.data.materials.append(random.choice(leaf_mats))
         e, _ = rand_rot(Vector((0.0, 0.0, 1.0)), random.uniform(0, 45))
         leaf_obj.rotation_euler = e
-        leaf_obj.name = "Leaf"
+        leaf_obj.name = "Leaf" + str(len(leaf_objects));
         leaf_objects.append(leaf_obj)
     return leaf_objects
